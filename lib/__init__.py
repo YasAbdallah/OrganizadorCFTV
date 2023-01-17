@@ -7,6 +7,13 @@ from _tkinter import TclError
 
 
 def log(root='', arqlog='', mensagem=''):
+    """
+    Função feita para escrever um arquivo de log.
+    :param root: local no HD onde está localizado o arquivo de log.
+    :param arqlog: Nome do arquivo de log que deve ser escrito.
+    :param mensagem: A mensagem que deve ser escrita no arquivo.]
+    :return: Retorna o arquivo escrito.
+    """
     formato = 'Data: %(asctime)s :: Linha n: %(lineno)s => %(message)s'
     logging.basicConfig(filename=root+arqlog, level=logging.INFO, format=formato)
     return logging.info(mensagem)
@@ -50,15 +57,26 @@ def listarPastas(hd, pastacam):
     return dictarqivospastas
 
 
-def criarArqLog(pasta, arquivo):
+def criarArqLog(pasta, nomeArquivo):
+    """
+    Criar arquivos de log
+    :param pasta: Local onde deve ser criado o arquivo.
+    :param arquivo: nome do arquivo que deseja criar.
+    :return: retorna o arquivo criado caso ele não exista.
+    """
     if not os.path.exists(pasta):
         os.makedirs(pasta)
-    arq = open(pasta+arquivo, "a")
+    arq = open(pasta+nomeArquivo, "a")
     arq.close()
 
 
-def verificarEspacoHD(hdbackup):
-    total, usado, livre, percent = disk_usage(hdbackup)
+def verificarEspacoHD(hd):
+    """
+    Verificar porcentagem de uso de um HD.
+    :param hd: Unidade de disco para verificação.
+    :return: Retorna a porcentagem ototal usado do HD.
+    """
+    total, usado, livre, percent = disk_usage(hd)
 
     if percent >= 98:
         log('C:\\log_backup\\', 'info_script.log', 'O HD está cheio, hora de trocar.')
@@ -70,13 +88,24 @@ def verificarEspacoHD(hdbackup):
         msg('Porcentagem do HD.', f"O HD de Backup está com: {percent}% da capacidade total.", timer=500)
 
 
-def unidadeDisk(arqivolog):
-    with open(f'C:\\log_backup\\{arqivolog}', 'r') as txt:
+def logUnidadeHDs(nomeArquivo):
+    """
+    Cria o log da letra a qual os HDs estão mapeados
+    :param nomeArquivo: Nome do arquivo de log da letra do hd.
+    :return: Retorna a letra mapeda do txt ou a que acabou de ser escolhida.
+    """
+    # Nada elegante mas funciona! 
+    palavra1 = nomeArquivo.split("_")
+    palavra2 = palavra1.split(".")
+    # Abre o arquivo para leitura
+    with open(f'C:\\log_backup\\{nomeArquivo}', 'r') as txt:
         texto = txt.read()
+        # se o arquivo estiver vazio abre para edição
         if texto == "":
-            with open('C:\\log_backup\\arqivoLog', 'a') as txt2:
-                if messagebox.askyesno("Escolha o HD de Origem.",
-                                       "Para Continuar escolha o HD onde é gravado as imagens."):
+            with open(f'C:\\log_backup\\{nomeArquivo}', 'a') as txt2:
+                # Escolhe o HD para salvar no arquivo.
+                if messagebox.askyesno(f"Escolha o {palavra1[0].upper()} de {palavra2[0].upper()}.",
+                                       f"Para Continuar escolha o {palavra1[0].upper()} de {palavra2[0].upper()} dos arquivos."):
                     unidade = filedialog.askdirectory()
                     txt2.write(unidade)
         else:
@@ -85,11 +114,19 @@ def unidadeDisk(arqivolog):
 
 
 def criarPastas(dirs):
+    """
+    Cria pastas caso não exista.
+    :return: Pasta Criada.
+    """
     if not os.path.exists(dirs):
         return os.makedirs(dirs)
 
 
 def organizarData(arquivo):
+    """
+    Pega as datas no nome dos arquivos de video.
+    :return: Data no formato de dicionario.
+    """
     return {
         'ano': arquivo[0:4],
         'mes': 'Mes_' + arquivo[4:6],
@@ -98,18 +135,33 @@ def organizarData(arquivo):
 
 
 def listarArqCopiados():
+    """
+    Lista todos os arquivos copiados para o hd de backup anteriormente.
+    :return: Lista de arquivos para comparação.
+    """
     with open('C:\\log_backup\\feitos.txt', 'r') as txt:
         lista = [x.strip() for x in txt.readlines()]
     return lista
 
 
 def salvarLogArqCopiado(arquivo):
+    """
+    Escreve no arquivo de log de imagens copiadas.
+    :param arquivo: o caminho completo do arquivo que fou copiado.
+    :return: Mensagem de sucesso.
+    """
     with open('C:\\log_backup\\feitos.txt', 'a') as txt:
         txt.write(arquivo)
     return msg('Salvo no log', 'Log atualizado.', timer=200)
 
 
-def organizaListaImgs(diskgravacao, arq):
+def organizarListaImgs(diskgravacao, arq):
+    """
+    Organiza todas os arquivos em suas pastas relacionada e salva em um dicionario para tratamento futuro.
+    :param diskgravacao: A pasta de gravação/Origem dos arquivos de video.
+    :param arq: Lista de pastas do disco de origem.
+    :return: Biblioteca separando as pastas com os arquivos.
+    """
     listaImgInternas = list()
     listaImgExternas = list()
     for key, value in listarPastas(diskgravacao, arq[0]).items():
@@ -124,6 +176,11 @@ def organizaListaImgs(diskgravacao, arq):
 
 
 def copiarArquivos(diskBackup, arquivos):
+    """
+    Aqui a mágica acontece... Copia todos os arquivos que não existam no arquivo de log das imagens copiadas anteriormente.
+    :param diskBackup: Unidade de disco de backup.
+    :param arquivos: Lista de arquivos organizados por pastas feito na função organizarListaImgs().
+    """ 
     for arquivo in arquivos:
         # Usar separarPastas[-3] = Cameras Internas/Externas e separarPastas[-2] = numero da camera, separarPastas[-1] = arquivos de video
         separarPastas = arquivo.split("\\")

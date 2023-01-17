@@ -12,11 +12,11 @@ criaTxt = lambda arq: criarArqLog('C:\\log_backup\\', arq)
 [criaTxt(arq) for arq in ['hd_origem.txt', 'hd_backup.txt', 'feitos.txt']]
 
 # Busca no log se existe a unidade salva, se não existir o script pergunta qual unidade é pra ser salva.
-diskOrigem = unidadeDisk("hd_origem.txt")
-diskBackup = unidadeDisk("hd_backup.txt")
+diskOrigem = logUnidadeHDs("hd_origem.txt")
+diskBackup = logUnidadeHDs("hd_backup.txt")
 
 # Cria uma biblioteca com todos os arquivos de video listados. 
-listaOrganizada  = organizaListaImgs(diskOrigem, ['Cameras Internas', 'Cameras Externas'])
+listaOrganizada  = organizarListaImgs(diskOrigem, ['Cameras Internas', 'Cameras Externas'])
 
 # Para todos os arquivos listados anteriomente realiza a cópia para o HD de backup.
 for values in listaOrganizada.values():
